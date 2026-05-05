@@ -1,3 +1,4 @@
+
 def start():
     print("Willkommen zu deinem Abenteuer!")
     print("Du stehst vor einem dunklen Wald. Möchtest du hineingehen?")
