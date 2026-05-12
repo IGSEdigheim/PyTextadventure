@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bewertungsraster: Eigenes Textadventure</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue-dark:   #1a3a5c;
+    --blue-mid:    #2563a8;
+    --blue-light:  #dbeafe;
+    --blue-stripe: #eff6ff;
+    --green-dark:  #14532d;
+    --green-mid:   #16a34a;
+    --green-light: #dcfce7;
+    --green-stripe:#f0fdf4;
+    --ink:         #1c1c1e;
+    --ink-soft:    #444;
+    --rule:        #d1d5db;
+    --bg:          #ffffff;
+    --accent-gold: #b45309;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 10.5pt;
+    color: var(--ink);
+    background: #e8e8e8;
+    padding: 24px;
+  }
+
+  .page {
+    background: var(--bg);
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 16mm 18mm 16mm;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+  }
+
+  /* ── Header ───────────────────────────────────────── */
+  .doc-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 12px;
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .doc-title {
+    font-size: 18pt;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .doc-subtitle {
+    font-size: 9pt;
+    font-weight: 300;
+    color: var(--ink-soft);
+    margin-top: 3px;
+    font-style: italic;
+  }
+  .badge-wrap { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5pt;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .badge-blue  { background: var(--blue-dark);  color: #fff; }
+  .badge-green { background: var(--green-dark); color: #fff; }
+
+  /* ── Meta fields ──────────────────────────────────── */
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .meta-field {
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 2px;
+  }
+  .meta-label {
+    font-size: 7pt;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* ── Info box ─────────────────────────────────────── */
+  .info-box {
+    background: #fafaf8;
+    border-left: 3px solid var(--accent-gold);
+    padding: 7px 10px;
+    margin-bottom: 16px;
+    font-size: 9pt;
+    color: var(--ink-soft);
+  }
+  .info-box strong { color: var(--ink); }
+
+  /* ── Section headers ──────────────────────────────── */
+  .section {
+    margin-bottom: 14px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    margin-bottom: 10px;
+    border-radius: 2px;
+  }
+  .section-header.blue  { background: var(--blue-dark);  color: #fff; }
+  .section-header.green { background: var(--green-dark); color: #fff; }
+
+  .section-title {
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    flex: 1;
+  }
+  .section-pts {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10pt;
+    font-weight: 600;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  /* ── Sub-section headers ──────────────────────────── */
+  .sub-header {
+    font-size: 8.5pt;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 10px 0 4px;
+    padding-left: 2px;
+  }
+  .blue  .sub-header, .section.blue-theme  .sub-header { color: var(--blue-mid); }
+  .section.blue-theme  .sub-header { color: var(--blue-mid); }
+  .section.green-theme .sub-header { color: var(--green-mid); }
+
+  /* ── Tables ───────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin-bottom: 6px;
+  }
+  th {
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 5px 7px;
+    text-align: left;
+    border-bottom: 2px solid;
+  }
+  .blue-theme  th { border-color: var(--blue-mid);  background: var(--blue-light);  color: var(--blue-dark); }
+  .green-theme th { border-color: var(--green-mid); background: var(--green-light); color: var(--green-dark); }
+
+  th.center { text-align: center; }
+
+  td {
+    padding: 5px 7px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+  td.center { text-align: center; }
+  td code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    background: #f3f4f6;
+    padding: 1px 3px;
+    border-radius: 2px;
+  }
+
+  .blue-theme  tr:nth-child(even) td { background: var(--blue-stripe); }
+  .green-theme tr:nth-child(even) td { background: var(--green-stripe); }
+
+  tr.sum-row td {
+    font-weight: 700;
+    border-top: 2px solid;
+    border-bottom: none;
+    background: transparent !important;
+  }
+  .blue-theme  tr.sum-row td { border-color: var(--blue-mid);  color: var(--blue-dark); }
+  .green-theme tr.sum-row td { border-color: var(--green-mid); color: var(--green-dark); }
+
+  .score-box {
+    width: 36px;
+    min-width: 36px;
+    border: 1.5px solid var(--rule);
+    border-radius: 2px;
+    height: 22px;
+    display: inline-block;
+  }
+
+  /* ── Total table ──────────────────────────────────── */
+  .total-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .total-box {
+    border: 2px solid var(--ink);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .total-box-header {
+    padding: 5px 10px;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .total-box-header.blue  { background: var(--blue-dark); }
+  .total-box-header.green { background: var(--green-dark); }
+
+  .total-box table { margin-bottom: 0; }
+  .total-box th { background: none; border-bottom-width: 1px; font-size: 7pt; }
+  .blue-theme  .total-box th { background: var(--blue-light); }
+  .green-theme .total-box th { background: var(--green-light); }
+
+  .grand-total {
+    border: 2.5px solid var(--ink);
+    border-radius: 3px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    background: var(--ink);
+    color: #fff;
+  }
+  .grand-total-label {
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .grand-total-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11pt;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .grand-score-field {
+    width: 48px;
+    height: 28px;
+    background: #fff;
+    border-radius: 2px;
+    display: inline-block;
+  }
+
+  /* ── Grade scale ──────────────────────────────────── */
+  .grade-scale {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .grade-item {
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
+    border-right: 1px solid var(--rule);
+    font-size: 8.5pt;
+  }
+  .grade-item:last-child { border-right: none; }
+  .grade-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13pt;
+    font-weight: 700;
+    display: block;
+    line-height: 1.1;
+  }
+  .grade-range {
+    font-size: 7pt;
+    color: var(--ink-soft);
+    display: block;
+    margin-top: 2px;
+  }
+  .grade-item:nth-child(1) .grade-num { color: #15803d; }
+  .grade-item:nth-child(2) .grade-num { color: #2563a8; }
+  .grade-item:nth-child(3) .grade-num { color: #7c3aed; }
+  .grade-item:nth-child(4) .grade-num { color: #d97706; }
+  .grade-item:nth-child(5) .grade-num { color: #dc2626; }
+  .grade-item:nth-child(6) .grade-num { color: #6b7280; }
+
+  /* ── Comment ──────────────────────────────────────── */
+  .comment-section {
+    border-top: 1px solid var(--rule);
+    padding-top: 10px;
+  }
+  .comment-label {
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .comment-lines { display: flex; flex-direction: column; gap: 10px; }
+  .comment-line {
+    border-bottom: 1px solid var(--ink);
+    height: 18px;
+  }
+
+  /* ── Print button ─────────────────────────────────── */
+  .print-btn {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    padding: 11px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10pt;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    letter-spacing: 0.04em;
+    transition: background 0.15s;
+  }
+  .print-btn:hover { background: #333; }
+
+  /* ── Print styles ─────────────────────────────────── */
+  @media print {
+    body { background: none; padding: 0; }
+    .page { box-shadow: none; width: 100%; padding: 12mm 14mm; }
+    .print-btn { display: none; }
+    .section { page-break-inside: avoid; }
+    .total-section { page-break-inside: avoid; }
+    .grand-total { page-break-inside: avoid; }
+  }
+
+  @page { size: A4; margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div>
+      <div class="doc-title">Bewertungsraster</div>
+      <div class="doc-subtitle">Eigenes Textadventure — Python-Einstiegsprojekt</div>
+    </div>
+    <div class="badge-wrap">
+      <span class="badge badge-blue">KI-Bewertung: 25 Pkt.</span>
+      <span class="badge badge-green">Präsentation: 25 Pkt.</span>
+    </div>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta">
+    <div class="meta-field">
+      <span class="meta-label">Name</span>
+    </div>
+    <div class="meta-field">
+      <span class="meta-label">Klasse / Kurs</span>
+    </div>
+    <div class="meta-field">
+      <span class="meta-label">Datum</span>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="info-box">
+    Die Gesamtnote setzt sich aus zwei gleichwertigen Teilen zusammen:
+    <strong>25 Punkte Code</strong> (KI-Bewertung) +
+    <strong>25 Punkte Präsentation</strong> (Lehrkraft) =
+    <strong>50 Punkte</strong>
+  </div>
+
+  <!-- ── TEIL 1: CODE ── -->
+  <div class="section blue-theme">
+    <div class="section-header blue">
+      <span class="section-title">Teil 1 — Code-Bewertung (KI)</span>
+      <span class="section-pts">25 Punkte</span>
+    </div>
+
+    <div class="sub-header">Pflichtkriterien</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th class="center" style="width:72px">Möglich</th>
+          <th class="center" style="width:72px">Erreicht</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Das Programm startet fehlerfrei</td>
+          <td class="center">3</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Mindestens 3 Szenen als eigene Funktionen (<code>def</code>)</td>
+          <td class="center">3</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Jede Szene enthält eine Entscheidung mit <code>input()</code> und <code>if/elif/else</code></td>
+          <td class="center">3</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Mindestens 1 gutes Ende und 1 schlechtes Ende</td>
+          <td class="center">2</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr class="sum-row">
+          <td>Summe Pflicht</td>
+          <td class="center">11</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sub-header">Technische Umsetzung</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th class="center" style="width:72px">Möglich</th>
+          <th class="center" style="width:72px">Erreicht</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Variablen und Zahlenoperationen sinnvoll eingesetzt</td>
+          <td class="center">1</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Mindestens eine <code>while</code>-Schleife verwendet</td>
+          <td class="center">1</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Liste als Inventar vorhanden und genutzt</td>
+          <td class="center">1</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td><code>random</code> für zufällige Ereignisse eingesetzt</td>
+          <td class="center">1</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>f-Strings für die Textausgabe verwendet</td>
+          <td class="center">1</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Korrekte Programmstruktur (Funktionen → Variablen → <code>main()</code>)</td>
+          <td class="center">2</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td><code>global</code>-Keyword korrekt eingesetzt wo nötig</td>
+          <td class="center">1</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr class="sum-row">
+          <td>Summe Technik</td>
+          <td class="center">8</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sub-header">Codequalität</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th class="center" style="width:72px">Möglich</th>
+          <th class="center" style="width:72px">Erreicht</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Code ist übersichtlich und einheitlich eingerückt</td>
+          <td class="center">2</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Variablen- und Funktionsnamen sind verständlich gewählt</td>
+          <td class="center">2</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Ungültige Eingaben werden abgefangen</td>
+          <td class="center">2</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr class="sum-row">
+          <td>Summe Qualität</td>
+          <td class="center">6</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── TEIL 2: PRÄSENTATION ── -->
+  <div class="section green-theme">
+    <div class="section-header green">
+      <span class="section-title">Teil 2 — Präsentation (Lehrkraft)</span>
+      <span class="section-pts">25 Punkte</span>
+    </div>
+
+    <div class="sub-header">Inhaltliche Erklärung</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th class="center" style="width:72px">Möglich</th>
+          <th class="center" style="width:72px">Erreicht</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Die Geschichte und der Spielablauf werden verständlich vorgestellt</td>
+          <td class="center">4</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Eigene Designentscheidungen werden begründet (z.B. Szenenwahl, Variablen)</td>
+          <td class="center">4</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Schwierigkeiten beim Programmieren werden reflektiert</td>
+          <td class="center">3</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr class="sum-row">
+          <td>Summe Inhalt</td>
+          <td class="center">11</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sub-header">Technisches Verständnis</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th class="center" style="width:72px">Möglich</th>
+          <th class="center" style="width:72px">Erreicht</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Verwendete Python-Konzepte können erklärt werden</td>
+          <td class="center">4</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Rückfragen der Lehrkraft werden sicher beantwortet</td>
+          <td class="center">4</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr class="sum-row">
+          <td>Summe Verständnis</td>
+          <td class="center">8</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="sub-header">Präsentation &amp; Auftreten</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Kriterium</th>
+          <th class="center" style="width:72px">Möglich</th>
+          <th class="center" style="width:72px">Erreicht</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Klare, strukturierte Vorstellung</td>
+          <td class="center">3</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr>
+          <td>Freie, verständliche Ausdrucksweise</td>
+          <td class="center">3</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+        <tr class="sum-row">
+          <td>Summe Auftreten</td>
+          <td class="center">6</td>
+          <td class="center"><span class="score-box"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── GESAMT ── -->
+  <div class="total-section">
+    <div class="total-box blue-theme">
+      <div class="total-box-header blue">Code gesamt (KI)</div>
+      <table>
+        <thead><tr>
+          <th>Bereich</th>
+          <th class="center">Möglich</th>
+          <th class="center">Erreicht</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Pflichtkriterien</td><td class="center">11</td><td class="center"><span class="score-box"></span></td></tr>
+          <tr><td>Technische Umsetzung</td><td class="center">8</td><td class="center"><span class="score-box"></span></td></tr>
+          <tr><td>Codequalität</td><td class="center">6</td><td class="center"><span class="score-box"></span></td></tr>
+          <tr class="sum-row"><td>Code gesamt</td><td class="center">25</td><td class="center"><span class="score-box"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="total-box green-theme">
+      <div class="total-box-header green">Präsentation gesamt (Lehrkraft)</div>
+      <table>
+        <thead><tr>
+          <th>Bereich</th>
+          <th class="center">Möglich</th>
+          <th class="center">Erreicht</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Inhaltliche Erklärung</td><td class="center">11</td><td class="center"><span class="score-box"></span></td></tr>
+          <tr><td>Technisches Verständnis</td><td class="center">8</td><td class="center"><span class="score-box"></span></td></tr>
+          <tr><td>Präsentation &amp; Auftreten</td><td class="center">6</td><td class="center"><span class="score-box"></span></td></tr>
+          <tr class="sum-row"><td>Präsentation gesamt</td><td class="center">25</td><td class="center"><span class="score-box"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grand-total">
+    <span class="grand-total-label">Gesamtpunktzahl</span>
+    <span class="grand-total-score">
+      <span class="score-box grand-score-field"></span>
+      <span style="font-size:9pt;opacity:0.6">/ 50</span>
+    </span>
+  </div>
+
+  <!-- Notenschlüssel -->
+  <div class="grade-scale">
+    <div class="grade-item">
+      <span class="grade-num">1</span>
+      <span class="grade-range">45–50</span>
+    </div>
+    <div class="grade-item">
+      <span class="grade-num">2</span>
+      <span class="grade-range">38–44</span>
+    </div>
+    <div class="grade-item">
+      <span class="grade-num">3</span>
+      <span class="grade-range">30–37</span>
+    </div>
+    <div class="grade-item">
+      <span class="grade-num">4</span>
+      <span class="grade-range">22–29</span>
+    </div>
+    <div class="grade-item">
+      <span class="grade-num">5</span>
+      <span class="grade-range">12–21</span>
+    </div>
+    <div class="grade-item">
+      <span class="grade-num">6</span>
+      <span class="grade-range">0–11</span>
+    </div>
+  </div>
+
+  <!-- Kommentar -->
+  <div class="comment-section">
+    <span class="comment-label">Kommentar Lehrkraft</span>
+    <div class="comment-lines">
+      <div class="comment-line"></div>
+      <div class="comment-line"></div>
+      <div class="comment-line"></div>
+    </div>
+  </div>
+
+</div>
+
+<button class="print-btn" onclick="window.print()">⎙ Drucken</button>
+
+</body>
+</html>
